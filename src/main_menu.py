@@ -38,8 +38,24 @@ class Window_Menu(QMainWindow):
 
         # ボタン2
         button2 = QPushButton("Button 2")
-        button2.clicked.connect(lambda: print(2))
+        button2.clicked.connect(lambda: self.bt(2))
         button2.setStyleSheet("""
+            QPushButton {
+                background-color: #87CEFA;
+                color: white;
+                font-size: 18px;
+                padding: 12px;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #00BFFF;
+            }
+        """)
+
+                # ボタン3
+        button3 = QPushButton("Button 3")
+        button3.clicked.connect(lambda: self.bt(3))
+        button3.setStyleSheet("""
             QPushButton {
                 background-color: #87CEFA;
                 color: white;
@@ -54,6 +70,7 @@ class Window_Menu(QMainWindow):
 
         layout.addWidget(button1)
         layout.addWidget(button2)
+        layout.addWidget(button3)
         layout.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         layout.setContentsMargins(40, 40, 40, 40)
         layout.setSpacing(20)
@@ -61,5 +78,13 @@ class Window_Menu(QMainWindow):
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
     def bt(self,number):
-        print("aaaaa")
-        self.manager.push_loop()
+        if number == 1:
+            self.manager.create_entry_point()
+
+        elif number == 2:
+            self.manager.dfs_loop_start()
+
+        else:
+            self.manager.test_explore()
+
+
