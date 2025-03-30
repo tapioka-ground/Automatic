@@ -8,6 +8,7 @@ class DfsAI():
         self.android = android_class
         self.manager = single_manager
         self.running = False  # 重複起動防止用フラグ
+        self.visited_failed_hashes = set()
 
     def dfs_start(self):
         if self.running:
@@ -61,13 +62,14 @@ class DfsAI():
                         break
                 if found:
                     break
-
             if not found:
-                # 全探索失敗 → デプス+1の未探索に変更して探す
                 print("🌀 全てのルート探索失敗 → デプスを浅くして再探索")
                 for offset in range(1, max_depth + 1):
                     depth = max_depth - offset
-                    hash_list = [h for h, d in self.android.depth_map.items() if d == depth and h not in visited_failed_hashes]
+                    hash_list = [
+                        h for h, d in self.android.depth_map.items()
+                        if d == depth and h not in self.visited_failed_hashes
+                    ]
                     for hash_val in hash_list:
                         actions = self.android.transition_log.get(hash_val, [])
                         for i, action in enumerate(actions):
@@ -81,8 +83,18 @@ class DfsAI():
                     if found:
                         break
 
+            # ✅ 最後のチェックを正しくする
             if not found:
-                print("✅ 全てのアクションを探索済み。DFS終了。")
+                # まだ未実行のアクションがあるかチェック
+                any_remaining = any(
+                    any(not action.get("done") for action in actions)
+                    for actions in self.android.transition_log.values()
+                )
+                if any_remaining:
+                    print("⚠️ 未実行のアクションがあるが、ルートが見つからず終了します")
+                else:
+                    print("✅ 全てのアクションを探索済み。DFS終了。")
+
                 self.running = False
                 break
 
@@ -130,9 +142,14 @@ class DfsAI():
             print(f"⌨️ 入力復元: '{inputvalue}' at bounds={bounds}")
             subprocess.run(["adb", "shell", "input", "tap", str(center_x), str(center_y)])
             time.sleep(0.3)
-            for _ in range(10):
-                subprocess.run(["adb", "shell", "input", "keyevent", "67"])
-                time.sleep(0.05)
+            subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_MOVE_END"])  # Endへ
+            time.sleep(0.1)
+            subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_SHIFT_LEFT"])  # Shift押す
+            time.sleep(0.1)
+            subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_MOVE_HOME"])  # Homeへ（Shift押しながらで全選択）
+            time.sleep(0.1)
+            subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_DEL"])  # 削除
+            time.sleep(0.3)
             subprocess.run(["adb", "shell", "input", "text", inputvalue])
             time.sleep(0.2)
             subprocess.run(["adb", "shell", "input", "keyevent", "66"])

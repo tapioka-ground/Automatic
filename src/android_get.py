@@ -222,9 +222,14 @@ class ADBManager:
         subprocess.run(["adb", "shell", "input", "tap", str(center_x), str(center_y)])
         time.sleep(0.3)
 
-        for _ in range(10):
-            subprocess.run(["adb", "shell", "input", "keyevent", "67"])  # DEL
-            time.sleep(0.05)
+        subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_MOVE_END"])  # Endへ
+        time.sleep(0.1)
+        subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_SHIFT_LEFT"])  # Shift押す
+        time.sleep(0.1)
+        subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_MOVE_HOME"])  # Homeへ（Shift押しながらで全選択）
+        time.sleep(0.1)
+        subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_DEL"])  # 削除
+        time.sleep(0.3)
 
         subprocess.run(["adb", "shell", "input", "text", next_input])
         time.sleep(0.2)
